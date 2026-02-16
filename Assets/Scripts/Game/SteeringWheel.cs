@@ -115,7 +115,7 @@ public class SteeringWheel : XRBaseInteractable
     private float FindWheelAngle()
     {
         float totalAngle = 0;
-
+        
         foreach (IXRSelectInteractor interactor in interactorsSelecting)
         {
             Vector2 direction = FindLocalPoint(interactor.transform.position);

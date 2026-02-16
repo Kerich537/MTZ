@@ -9,4 +9,14 @@ public class TractorGearsUI : MonoBehaviour
     {
         _gearText.text = gear;
     }
+
+    private void OnEnable()
+    {
+        _gearText.gameObject.SetActive(true);
+    }
+
+    private void OnDisable()
+    {
+        _gearText.gameObject.SetActive(false);
+    }
 }

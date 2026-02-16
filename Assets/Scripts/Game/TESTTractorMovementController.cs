@@ -37,6 +37,8 @@ public class TESTTractorMovementController : MonoBehaviour
     [SerializeField] private Transform _steeringWheel;
     private Rigidbody _rb;
 
+    private bool _ignition;
+    private bool _canDrive;
     private int _currentGear = 1;
     private float _currentSpeed;
     private float _targetSpeed;
@@ -46,13 +48,16 @@ public class TESTTractorMovementController : MonoBehaviour
     void Awake()
     {
         _rb = GetComponent<Rigidbody>();
-        
+
         _rb.mass = 2500f;
         _rb.linearDamping = 0.05f;
         _rb.angularDamping = 1.2f;
         _rb.centerOfMass = new Vector3(0, -0.6f, 0);
-        
+
         _gearsUI.UpdateGear(_gearNames[_currentGear]);
+        
+        _gearsUI.gameObject.SetActive(_ignition);
+        _speedometerUI.gameObject.SetActive(_ignition);
     }
 
     void Update()
@@ -62,10 +67,30 @@ public class TESTTractorMovementController : MonoBehaviour
 
     void FixedUpdate()
     {
-        UpdateTargetSpeed();
-        ApplyMovement();
+        if (_canDrive)
+        {
+            UpdateTargetSpeed();
+            ApplyMovement();
+            ApplyDownforce();
+        }
+
         ApplySteering();
-        ApplyDownforce();
+    }
+
+    public void SetCanDrive(bool canDrive)
+    {
+        _canDrive = canDrive;
+    }
+
+    public void SetIgnition(bool ignition)
+    {
+        _ignition = ignition;
+
+        _gearsUI.gameObject.SetActive(_ignition);
+        _gearsUI.UpdateGear(_gearNames[_currentGear]);
+
+        _speedometerUI.gameObject.SetActive(_ignition);
+        _speedometerUI.UpdateSpeed(_currentSpeed);
     }
 
     void HandleInput()
@@ -85,7 +110,7 @@ public class TESTTractorMovementController : MonoBehaviour
         _handbrake = Input.GetKey(KeyCode.Space);
     }
 
-    public void GearUp() 
+    public void GearUp()
     {
         if (_currentGear < _gearSpeeds.Length - 1)
         {
@@ -94,7 +119,7 @@ public class TESTTractorMovementController : MonoBehaviour
             _gearsUI.UpdateGear(_gearNames[_currentGear]);
         }
     }
-    public void GearDown() 
+    public void GearDown()
     {
         if (_currentGear > 0)
         {
@@ -104,7 +129,7 @@ public class TESTTractorMovementController : MonoBehaviour
         }
     }
 
-    public void SetHandbrake(bool handbrake) { _handbrake = handbrake;  }
+    public void SetHandbrake(bool handbrake) { _handbrake = handbrake; print("Handbrake - " + handbrake); }
 
     void UpdateTargetSpeed()
     {
@@ -124,7 +149,7 @@ public class TESTTractorMovementController : MonoBehaviour
             smooth
         );
 
-        _speedometerUI.UpdateSpeed(_rb.linearVelocity.magnitude);
+        _speedometerUI.UpdateSpeed(_currentSpeed);
     }
 
     void ApplyMovement()
@@ -160,9 +185,9 @@ public class TESTTractorMovementController : MonoBehaviour
         frontRight.brakeTorque = brakeTorque * 0.7f;
     }
 
-    public float GetMaxSteeringWheelAngle() {  return _maxSteeringWheelAngle; }
+    public float GetMaxSteeringWheelAngle() { return _maxSteeringWheelAngle; }
 
-    [Range(-1,1)]
+    [Range(-1, 1)]
     private float _ratio;
 
     public void RotateSteeringWheel(float ratio)
